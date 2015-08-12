@@ -1,0 +1,97 @@
+package com.dmlwp.blockleaking;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
+
+public class MainActivity extends AppCompatActivity {
+
+    private Boolean isAirModeOn()
+    {
+        Boolean isAirPlaneMode;
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1)
+        { //젤리빈 MR1버전이하는 비행기모드를 제어할수없음
+            isAirPlaneMode = Settings.System.getInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) == 1;
+            //젤리빈 이하는 System 패키지에존재함
+        }
+        else
+        {
+            isAirPlaneMode = Settings.Global.getInt(getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+            //이상은 Global 패키지
+        }
+        return isAirPlaneMode;
+    }
+
+    private void settingAirPlaneMode(boolean mode)
+    {
+        if(mode) //켜져있으면
+        {
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) //젤리빈이하이면
+            {
+                Settings.System.putInt(getContentResolver(),Settings.Global.AIRPLANE_MODE_ON, 0); //비행기모드를 끔
+                Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+                intent.putExtra("state",!mode);
+                sendBroadcast(intent);
+            }
+            else
+            { //젤리빈이상이면
+                Intent intent = new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS);
+                startActivity(intent);
+                //설정창을띄움
+            }
+        }
+        else //꺼져있으면
+        {
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) //젤리빈이하이면
+            {
+                Settings.System.putInt(getContentResolver(),Settings.Global.AIRPLANE_MODE_ON, 1); //비행기모드를 킴
+                Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+                intent.putExtra("state",!mode);
+                sendBroadcast(intent);
+            }
+            else //젤리빈이상이면
+            {
+                Intent intent = new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS);
+                startActivity(intent);
+                //설정창을띄움
+            }
+        }
+    }
+    private void run()
+    {
+        settingAirPlaneMode(isAirModeOn());
+    }
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+}
